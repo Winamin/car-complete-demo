@@ -39,6 +39,6 @@ And two revolutionary mechanisms:
 
 ### Run the "Impossible Challenge"
 ```bash
-git clone https://github.com/yourname/NearOi.git
-cd NearOi
-python neaori.py
+git clone https://github.com/Winamin/Near-Oi.git
+cd Near-Oi
+python NearOi.py

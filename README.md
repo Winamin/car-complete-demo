@@ -4,7 +4,6 @@
 
 NearOi is a **fully white-box artificial general intelligence architecture** that discovers hidden physical laws from raw experimental data—**without any training, pre-coded templates, or supervision**. Built on the **NearOi cognitive theory**, it represents a paradigm shift from *statistical fitting* to *architectural reasoning*.
 
-[![Paper](https://img.shields.io/badge/arXiv-Paper-red)](https://arxiv.org/abs/xxxx.xxxxx)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.8+-green)]()
 

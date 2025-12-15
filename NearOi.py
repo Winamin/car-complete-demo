@@ -96,7 +96,7 @@ class NearOi:
     3. Conceptual Layer: 原型理论概念
     """
 
-    def __init__(self, layers: int = 3, neurons_per_layer: int = 10):
+    def __init__(self, layers: int = 5, neurons_per_layer: int = 2000):
         """
         初始化系统
 
@@ -555,7 +555,7 @@ class AdvancedNearOi(NearOi):
     扩展NearOi以处理复杂的科学发现任务
     """
 
-    def __init__(self, layers: int = 3, neurons_per_layer: int = 20):
+    def __init__(self, layers: int = 5, neurons_per_layer: int = 2000):
         super().__init__(layers, neurons_per_layer)
 
         self._init_advanced_concepts()
@@ -1602,7 +1602,7 @@ def run_impossible_challenge():
     challenge_data = create_impossible_physics_challenge()
 
     print("\n🤖 Initializing NearOi with advanced scientific reasoning...")
-    phitkai = AdvancedNearOi(layers=10, neurons_per_layer=10)
+    phitkai = AdvancedNearOi(layers=10, neurons_per_layer=1000)
 
     print("\n🔬 Starting zero-shot scientific discovery...")
     start_time = time.time()

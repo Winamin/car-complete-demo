@@ -4,7 +4,6 @@
 
 NearOi is a **fully white-box artificial general intelligence architecture** that discovers hidden physical laws from raw experimental data—**without any training, pre-coded templates, or supervision**. Built on the **NearOi cognitive theory**, it represents a paradigm shift from *statistical fitting* to *architectural reasoning*.
 
-[![Paper](https://img.shields.io/badge/arXiv-Paper-red)](https://arxiv.org/abs/xxxx.xxxxx)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.8+-green)]()
 
@@ -16,7 +15,6 @@ Unlike LLMs, deep learning, or symbolic regression, NearOi **invents**:
 - ✅ **Applies Noether’s theorem from first principles** to derive conservation laws  
 - ✅ **Constructs complete quantum field theories** with topological terms  
 - ✅ **Predicts phase transitions** (e.g., at T=0.73)  
-- ✅ **All in 0.36 seconds on CPU—no GPU required**
 
 > Current AI systems **cannot solve this**—they require training data, predefined bases, or similar tasks. NearOi needs **none**.
 

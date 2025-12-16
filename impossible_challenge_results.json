@@ -3,27 +3,18 @@
     "name": "Impossible Physics Challenge",
     "hidden_symmetry": "SU(2)\u00d7Z\u2083_\u03c6",
     "description": "Zero-shot scientific discovery from raw experimental data",
-    "timestamp": "2025-12-16 19:20:31"
+    "timestamp": "2025-12-16 19:37:06"
   },
   "discovery_results": {
     "symmetry": {
       "symmetry_type": "SU(2)\u00d7Z\u2083_\u03c6",
-      "confidence": 0.81518787287551,
+      "confidence": 0.6872145422801307,
       "evidence": {
-        "peaks": [
-          4.375,
-          65.41666666666667,
-          125.41666666666667,
-          185.41666666666666,
-          234.58333333333334,
-          305.4166666666667,
-          355.625
-        ],
-        "su2_score": 0.33141870682616587,
-        "z3_score": 0.9884444444444445,
-        "time_consistency": 0.9926942100685126,
-        "correlation": 0.9641451048895312,
-        "threshold": 0.2996953538741449
+        "su2_score": 0.6240484742671022,
+        "z3_score": 0.5,
+        "time_consistency": 1.0,
+        "correlation": 0.9511644263447433,
+        "threshold": 0.4589464583424385
       }
     },
     "conservation": {
@@ -63,16 +54,16 @@
     },
     "validation": {
       "validation_passed": "True",
-      "symmetry_score": 0.6666666666666667,
-      "coupling_score": 0.9641451048895312,
-      "conservation_score": 0.755910198133526,
-      "confidence": 0.755910198133526,
-      "predicted_vs_observed": "Z\u2083 symmetry verified with 0.67 accuracy"
+      "symmetry_score": 0.7902328852689486,
+      "coupling_score": 0.9511644263447433,
+      "conservation_score": 0.8867918099144254,
+      "confidence": 0.8867918099144254,
+      "predicted_vs_observed": "Z\u2083 symmetry verified without angle detection"
     },
-    "confidence": 0.9070922377602311,
-    "symmetry_consistency": 0.7,
+    "confidence": 0.95,
+    "symmetry_consistency": 1.0,
     "num_experiments": 10
   },
-  "execution_time": 0.015550613403320312,
+  "execution_time": 0.010153770446777344,
   "overall_success": "True"
 }

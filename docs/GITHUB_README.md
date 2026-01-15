@@ -53,20 +53,20 @@ pip install -r requirements.txt
 ### Run Tests
 
 ```bash
-python tests/test_system.py
+python test_system.py
 ```
 
 ### Run Complete Experiment
 
 ```bash
-python src/experiment.py
+python experiment.py
 ```
 
 ## 💻 Usage Example
 
 ```python
-from src.enhanced_car import EnhancedCARSystem
-from src.qm9_dataset import QM9Dataset, MolecularSymmetryGenerator
+from enhanced_car import EnhancedCARSystem
+from qm9_dataset import QM9Dataset, MolecularSymmetryGenerator
 
 # Get QM9 statistics
 qm9 = QM9Dataset()
@@ -95,28 +95,19 @@ print(f"Confidence: {result['confidence']:.3f}")
 
 ```
 car-system/
-├── src/                       # Source code
-│   ├── __init__.py
-│   ├── car_system.py         # Core CAR implementation
-│   ├── enhanced_car.py       # Enhanced mechanisms
-│   ├── qm9_dataset.py        # QM9 data handling
-│   ├── experiment.py         # Experimental pipeline
-│   └── example_usage.py      # Usage examples
-├── tests/                     # Tests
-│   ├── __init__.py
-│   └── test_system.py        # System tests
-├── docs/                      # Documentation
-│   ├── README.md             # Detailed documentation
-│   ├── QUICKSTART.md         # Quick start guide
-│   ├── PROJECT_SUMMARY.md    # Project summary
-│   ├── CHECKLIST.md          # Release checklist
-│   └── GITHUB_README.md      # GitHub-specific README
-├── data/                      # QM9 dataset (auto-created)
-├── results/                   # Experiment results (auto-created)
+├── car_system.py              # Core CAR implementation
+├── enhanced_car.py            # Enhanced mechanisms
+├── qm9_dataset.py             # QM9 data handling
+├── experiment.py              # Experimental pipeline
+├── test_system.py             # System tests
+├── example_usage.py           # Usage examples
 ├── requirements.txt           # Dependencies
 ├── setup.bat                  # Setup script
-├── LICENSE                    # MIT License
-└── README.md                  # This file
+├── README.md                  # This file
+├── QUICKSTART.md              # Quick start guide
+├── PROJECT_SUMMARY.md         # Detailed summary
+├── CHECKLIST.md               # Release checklist
+└── .gitignore                 # Git configuration
 ```
 
 ## 🔬 Scientific Background
@@ -201,18 +192,18 @@ High-symmetry molecules include:
 
 ## 📚 Documentation
 
-- **[docs/README.md](docs/README.md)** - Detailed documentation
-- **[docs/QUICKSTART.md](docs/QUICKSTART.md)** - 5-minute quick start guide
-- **[docs/PROJECT_SUMMARY.md](docs/PROJECT_SUMMARY.md)** - Detailed project summary
-- **[docs/CHECKLIST.md](docs/CHECKLIST.md)** - Release checklist
-- **[src/example_usage.py](src/example_usage.py)** - Comprehensive usage examples
+- **[README.md](README.md)** - This file
+- **[QUICKSTART.md](QUICKSTART.md)** - 5-minute quick start guide
+- **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - Detailed project summary
+- **[CHECKLIST.md](CHECKLIST.md)** - Release checklist
+- **[example_usage.py](example_usage.py)** - Comprehensive usage examples
 
 ## 🧪 Testing
 
 Run the test suite:
 
 ```bash
-python tests/test_system.py
+python test_system.py
 ```
 
 Expected output:

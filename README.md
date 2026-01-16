@@ -266,7 +266,7 @@ This work builds on the QM9 dataset (Ruddigkeit et al., 2012) and implements the
 
 ## 🔗 Links
 
-- [QM9 Dataset]([https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/qm9.pkl.gz](https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/gdb9.tar.gz))
+- [QM9 Dataset](https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/gdb9.tar.gz)
 
 ## ⚠️ Note
 

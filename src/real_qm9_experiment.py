@@ -83,10 +83,18 @@ def load_real_qm9_data(csv_file_path: str, n_samples: int = 3000):
         labels = labels[mask]
         print(f"Remaining samples: {len(features)}")
     
-    # NOTE: DO NOT CLIP QM9 gap values - they are already in correct range
-    # The original code incorrectly clipped them to [3.0, 17.0]
-    # QM9 gap values are naturally in eV range (typically 0.02-0.6 eV for small molecules)
-    print(f"WARNING: QM9 gap values NOT clipped - keeping original range [{labels.min():.4f}, {labels.max():.4f}] eV")
+    # Convert Hartree to eV (1 Hartree = 27.2114 eV)
+    # QM9 gap values are in Hartree units
+    hartree_to_ev = 27.2114
+    labels_ev = labels * hartree_to_ev
+    
+    # Check if conversion makes sense
+    print(f"WARNING: Converting QM9 gap values from Hartree to eV")
+    print(f"  Original range: [{labels.min():.4f}, {labels.max():.4f}] Hartree")
+    print(f"  Converted range: [{labels_ev.min():.4f}, {labels_ev.max():.4f}] eV")
+    
+    # Use converted values
+    labels = labels_ev
     
     print(f"Features shape: {features.shape}")
     print(f"Labels range: [{labels.min():.2f}, {labels.max():.2f}] eV")
@@ -97,9 +105,8 @@ def load_real_qm9_data(csv_file_path: str, n_samples: int = 3000):
 
 def run_real_qm9_experiment():
     """Run CAR system experiment with real QM9 data"""
-    print("\n" + "="*80)
-    print("CAR System Experiment with Real QM9 Data")
-    print("="*80)
+    import time
+    start_time = time.time()
     
     # Path to QM9 CSV file
     csv_file = "data/gdb9.sdf.csv"
@@ -113,14 +120,7 @@ def run_real_qm9_experiment():
         # Load real QM9 data
         X, y = load_real_qm9_data(csv_file, n_samples=3000)
         
-        print(f"\nDataset loaded successfully:")
-        print(f"  Samples: {len(X)}")
-        print(f"  Features: {X.shape[1]}")
-        print(f"  HOMO-LUMO gap range: [{y.min():.2f}, {y.max():.2f}] eV")
-        print(f"  Mean: {y.mean():.2f} eV")
-        
         # Create enhanced CAR system with paper parameters
-        print(f"\nInitializing Enhanced CAR System...")
         car = EnhancedCARSystem(
             num_units=20,                    # Paper: 20 units
             feature_dim=X.shape[1],          # Actual feature dimension
@@ -136,31 +136,15 @@ def run_real_qm9_experiment():
             exploration_value=np.mean(y)     # Use actual data mean
         )
         
-        print(f"System initialized with real QM9 data parameters")
-        
         # Run inference
-        print(f"\nRunning inference on {len(X)} real QM9 samples...")
         predictions = []
         errors = []
-        knowledge_sizes = []
-        special_pattern_sizes = []
-        strategies = []
         
         for i, (features, target) in enumerate(zip(X, y)):
             result = car.infer(features, target)
             predictions.append(result['prediction'])
             error = abs(result['prediction'] - target)
             errors.append(error)
-            knowledge_sizes.append(result['knowledge_size'])
-            special_pattern_sizes.append(result['special_patterns_size'])
-            strategies.append(result['strategy'])
-            
-            if (i + 1) % 500 == 0:
-                recent_mae = np.mean(errors[-500:])
-                recent_kb = knowledge_sizes[-1]
-                recent_sp = special_pattern_sizes[-1]
-                print(f"  {i+1}/{len(X)}: MAE={recent_mae:.4f} eV, "
-                      f"KB={recent_kb}, SP={recent_sp}")
         
         predictions = np.array(predictions)
         errors = np.array(errors)
@@ -173,50 +157,23 @@ def run_real_qm9_experiment():
         ss_tot = np.sum((y - np.mean(y)) ** 2)
         r2 = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
         
-        # Strategy statistics
-        strategy_counts = {}
-        for s in strategies:
-            strategy_counts[s] = strategy_counts.get(s, 0) + 1
+        elapsed_time = time.time() - start_time
         
-        stats = car.get_statistics()
-        
-        print(f"\n" + "="*80)
-        print("REAL QM9 DATA RESULTS")
-        print("="*80)
-        print(f"\nPerformance metrics:")
-        print(f"  Mean Absolute Error (MAE): {mae:.4f} eV")
-        print(f"  Root Mean Square Error (RMSE): {rmse:.4f} eV")
-        print(f"  R²: {r2:.4f}")
-        
-        print(f"\nStrategy usage:")
-        for s, count in sorted(strategy_counts.items(), key=lambda x: -x[1]):
-            print(f"  {s}: {count} ({count/len(strategies)*100:.1f}%)")
-        
-        print(f"\nKnowledge base:")
-        print(f"  Final size: {stats['knowledge_base_size']}")
-        print(f"  Special patterns: {stats['special_patterns_size']}")
-        print(f"  Patterns added: {stats['patterns_added']}")
-        print(f"  Special patterns added: {stats['special_patterns_added']}")
-        print(f"  Patterns merged: {stats['patterns_merged']}")
-        
-        print(f"\nSystem status:")
-        print(f"  Current learning rate: {stats['current_learning_rate']:.4f}")
-        print(f"  Recent error: {stats['recent_error']:.4f} eV")
+        # Print concise results
+        print(f"\nReal QM9 Results:")
+        print(f"  Time: {elapsed_time:.1f}s")
+        print(f"  MAE: {mae:.4f} eV")
+        print(f"  RMSE: {rmse:.4f} eV")
         
         # Compare with paper results
-        print(f"\n" + "="*80)
-        print("COMPARISON WITH PAPER RESULTS")
-        print("="*80)
-        print(f"Paper MAE: 1.07 eV")
-        print(f"Our MAE: {mae:.4f} eV")
-        print(f"Improvement: {((1.07 - mae) / 1.07 * 100):.1f}%")
+        paper_mae = 1.07
+        improvement = ((paper_mae - mae) / paper_mae * 100) if mae < paper_mae else -((mae - paper_mae) / paper_mae * 100)
         
-        if mae <= 1.07:
-            print(f"✓ Our implementation achieves paper-level performance with real QM9 data!")
+        if mae <= paper_mae:
+            print(f"  ✓ Paper target achieved: {improvement:.1f}% better")
             return True
         else:
-            print(f"✗ Our implementation achieves {((1.07 - mae) / 1.07 * 100):.1f}% worse performance")
-            print(f"  Further optimization needed")
+            print(f"  ✗ {improvement:.1f}% worse than paper target")
             return False
             
     except Exception as e:

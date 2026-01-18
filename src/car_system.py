@@ -1,20 +1,4 @@
-"""
-CAR System - Knowledge-Driven Gradient-Free Optimization
-
-Core Architecture:
-1. Compare: Units compare features, query knowledge base
-2. Adjust: Adjust internal states based on comparison
-3. Record: Store successful patterns to knowledge base
-4. Discuss: Multiple units discuss to reach consensus
-5. Reflect: Periodic self-reflection for strategy adjustment
-
-Key Features:
-- Multi-scale similarity retrieval
-- Weighted consensus discussion
-- Adaptive learning rate
-- Error prediction correction
-"""
-
+"""Synthetic data will be used here, please use real_qm9_experiment.py to test. """
 import numpy as np
 from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass, field
@@ -803,7 +787,7 @@ def compare_methods(X: np.ndarray, y: np.ndarray):
 
 if __name__ == "__main__":
     # Generate test data
-    np.random.seed(42)
+    #np.random.seed(42)
     n_samples = 3000
     feature_dim = 71
     

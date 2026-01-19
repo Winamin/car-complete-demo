@@ -170,10 +170,8 @@ def run_real_qm9_experiment():
         improvement = ((paper_mae - mae) / paper_mae * 100) if mae < paper_mae else -((mae - paper_mae) / paper_mae * 100)
         
         if mae <= paper_mae:
-            print(f"  ✓ Paper target achieved: {improvement:.1f}% better")
             return True
         else:
-            print(f"  ✗ {improvement:.1f}% worse than paper target")
             return False
             
     except Exception as e:

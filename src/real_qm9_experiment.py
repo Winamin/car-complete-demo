@@ -278,13 +278,6 @@ if __name__ == "__main__":
         print("\n" + "="*80)
         print("EXPERIMENT COMPLETE")
         print("="*80)
-        
-        if success:
-            print("✓ Real QM9 experiment completed successfully!")
-            print("  The CAR system performed well on authentic molecular data.")
-        else:
-            print("✗ Real QM9 experiment completed but performance needs improvement.")
-            print("  Consider further optimization of the CAR system.")
             
     except Exception as e:
         print(f"\n✗ Experiment failed with error: {e}")

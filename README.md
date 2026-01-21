@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![DOI](https://doi.org/10.17605/OSF.IO/F968B)
+[![DOI](https://img.shields.io/badge/DOI-10.17605/OSF.IO/F968B-blue.svg)](https://doi.org/10.17605/OSF.IO/F968B)
 ---
 
 ## Core Results

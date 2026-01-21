@@ -1,23 +1,27 @@
+#!/usr/bin/env python3
 """
-CAR System - Compare-Adjust-Record Computational Architecture
+CAR: Cognitive Architecture with Retrieval-Based Learning
+Main Source Code Package
 
-A novel computational architecture for emergent pattern detection
-through iterative computational unit interactions.
+This package provides a complete implementation of the CAR architecture
+for extreme noise recognition research.
+
+Date: January 2026
 """
 
-from .car_system import CARSystem
-from .enhanced_car import EnhancedCARSystem
-from .qm9_dataset import QM9Dataset, generate_molecular_features
-from .experiment import run_qm9_experiment, run_comparison_experiments
+from .config import CARConfig
+from .knowledge_base import KnowledgeBase, KnowledgePattern
+from .unit import ComputationalUnit, MultiViewAnalyzer
+from .car_model import CompleteCARModel
+
+__version__ = "1.0.0"
+__author__ = "Yingxu Wang"
 
 __all__ = [
-    'CARSystem',
-    'EnhancedCARSystem',
-    'QM9Dataset',
-    'generate_molecular_features',
-    'run_qm9_experiment',
-    'run_comparison_experiments',
+    'CARConfig',
+    'KnowledgeBase', 
+    'KnowledgePattern',
+    'ComputationalUnit',
+    'MultiViewAnalyzer',
+    'CompleteCARModel',
 ]
-
-__version__ = '1.0.0'
-__author__ = 'Winamin'

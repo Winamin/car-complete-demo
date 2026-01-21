@@ -1,0 +1,6 @@
+# CAR: Cognitive Architecture with Retrieval-Based Learning
+# Requirements file
+
+numpy>=1.20.0
+pytest>=7.0.0
+matplotlib>=3.5.0

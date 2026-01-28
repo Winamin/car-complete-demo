@@ -2,10 +2,12 @@
 """
 Complete CAR Model Implementation
 Main integration module for the Cognitive Architecture with Retrieval-Based Learning.
+Supports Decimal module for extreme precision (Float128 simulation).
 """
 
 import numpy as np
 from typing import Dict, List, Tuple
+from decimal import Decimal, getcontext
 from .config import CARConfig
 from .knowledge_base import KnowledgeBase, KnowledgePattern
 from .unit import ComputationalUnit, MultiViewAnalyzer
@@ -160,19 +162,28 @@ class CompleteCARModel:
         
         return consensus_prediction, consensus_confidence, consensus_reached
     
-    def predict(self, features: np.ndarray, record_states: bool = True) -> float:
+    def predict(
+        self, 
+        features: np.ndarray, 
+        record_states: bool = True,
+        use_decimal: bool = False
+    ) -> float:
         """
         Make a prediction for the given input.
         
         Args:
             features: Input feature vector
             record_states: Whether to record unit states for visualization
+            use_decimal: Whether to use Decimal for extreme precision (default: False)
             
         Returns:
             Predicted value
         """
-        # Retrieve similar patterns
-        retrieved = self.knowledge_base.multi_scale_retrieval(features)
+        # Retrieve similar patterns (with Decimal support if requested)
+        retrieved = self.knowledge_base.multi_scale_retrieval(
+            features, 
+            use_decimal=use_decimal
+        )
         
         # Check for special pattern
         is_special = self.knowledge_base.is_special_pattern(features)
@@ -187,7 +198,10 @@ class CompleteCARModel:
         if consensus_reached and consensus_pred is not None:
             self.prediction_history.append(consensus_pred)
         else:
-            kb_pred, kb_confidence = self.knowledge_base.get_weighted_prediction(features)
+            kb_pred, kb_confidence = self.knowledge_base.get_weighted_prediction(
+                features,
+                use_decimal=use_decimal
+            )
             if kb_pred is not None:
                 consensus_pred = kb_pred
                 confidence = kb_confidence

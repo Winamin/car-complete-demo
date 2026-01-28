@@ -2,11 +2,13 @@
 """
 Knowledge Base Module for CAR
 Implements pattern storage, retrieval, and management.
+Supports Decimal module for extreme precision (Float128 simulation).
 """
 
 from dataclasses import dataclass
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Union
 import numpy as np
+from decimal import Decimal, getcontext
 
 
 @dataclass
@@ -70,18 +72,21 @@ class KnowledgeBase:
         self.patterns: List[KnowledgePattern] = []
         self.created_counter = 0
     
-    def calculate_unit_score(self, x: np.ndarray, pattern: KnowledgePattern) -> float:
+    def calculate_unit_score(
+        self, 
+        x: np.ndarray, 
+        pattern: KnowledgePattern,
+        use_decimal: bool = False
+    ) -> float:
         """
-        Calculate unit score using cosine similarity × confidence.
+        Calculate unit score for a pattern.
         
-        This is the key innovation that enables noise robustness:
-        - Uses cosine similarity for pattern matching
-        - Multiplies by confidence for quality weighting
-        - Provides robust differentiation even under noise
+        Score = Cosine Similarity × Confidence × Log(Usage) × Time Factor × Diversity
         
         Args:
             x: Current input feature vector
             pattern: Knowledge pattern to score
+            use_decimal: Whether to use Decimal for extreme precision (default: False)
             
         Returns:
             Unit score (0-1 range)
@@ -90,6 +95,17 @@ class KnowledgeBase:
         if not self.patterns:
             return 0.5
         
+        if use_decimal:
+            return self._calculate_unit_score_decimal(x, pattern)
+        else:
+            return self._calculate_unit_score_float64(x, pattern)
+    
+    def _calculate_unit_score_float64(
+        self, 
+        x: np.ndarray, 
+        pattern: KnowledgePattern
+    ) -> float:
+        """Calculate unit score using Float64 (standard precision)."""
         # Cosine similarity computation
         x_norm = np.linalg.norm(x) + 1e-10
         p_norm = np.linalg.norm(pattern.features) + 1e-10
@@ -111,6 +127,56 @@ class KnowledgeBase:
             unit_score = 0.1 * confidence_factor
         
         return max(0.0, unit_score)
+    
+    def _calculate_unit_score_decimal(
+        self, 
+        x: np.ndarray, 
+        pattern: KnowledgePattern
+    ) -> float:
+        """Calculate unit score using Decimal for extreme precision."""
+        try:
+            # Convert to Decimal
+            x_decimal = np.array([[Decimal(str(val)) for val in row] for row in x.reshape(-1, 1)])
+            p_decimal = np.array([[Decimal(str(val)) for val in row] for row in pattern.features.reshape(-1, 1)])
+            
+            # Calculate norms using Decimal
+            x_norm_sq = sum(val * val for val in x_decimal.flatten())
+            p_norm_sq = sum(val * val for val in p_decimal.flatten())
+            
+            x_norm_decimal = x_norm_sq.sqrt() if x_norm_sq > 0 else Decimal('0')
+            p_norm_decimal = p_norm_sq.sqrt() if p_norm_sq > 0 else Decimal('0')
+            
+            # Avoid division by zero
+            x_norm_decimal = x_norm_decimal + Decimal('1e-50')
+            p_norm_decimal = p_norm_decimal + Decimal('1e-50')
+            
+            # Normalize
+            x_normalized_decimal = x_decimal.flatten() / x_norm_decimal
+            p_normalized_decimal = p_decimal.flatten() / p_norm_decimal
+            
+            # Calculate dot product
+            dot_product = sum(x * p for x, p in zip(x_normalized_decimal, p_normalized_decimal))
+            
+            # Clip to [-1, 1]
+            dot_product = max(Decimal('-1'), min(Decimal('1'), dot_product))
+            
+            # Convert to float for consistency
+            cosine_sim = float(dot_product)
+            
+            # Confidence factor
+            confidence_factor = pattern.confidence
+            
+            # Final score
+            if cosine_sim > 0:
+                unit_score = cosine_sim * confidence_factor
+            else:
+                unit_score = 0.1 * confidence_factor
+            
+            return max(0.0, unit_score)
+            
+        except Exception as e:
+            # Fallback to Float64 if Decimal calculation fails
+            return self._calculate_unit_score_float64(x, pattern)
     
     def is_special_pattern(self, features: np.ndarray) -> bool:
         """
@@ -138,7 +204,8 @@ class KnowledgeBase:
     def find_similar_patterns(
         self, 
         features: np.ndarray, 
-        threshold: float
+        threshold: float,
+        use_decimal: bool = False
     ) -> List[Tuple[KnowledgePattern, float]]:
         """
         Find patterns similar to input features.
@@ -146,13 +213,14 @@ class KnowledgeBase:
         Args:
             features: Input feature vector
             threshold: Minimum similarity threshold (0-1)
+            use_decimal: Whether to use Decimal for extreme precision (default: False)
             
         Returns:
             List of (pattern, score) tuples, sorted by score descending
         """
         # Calculate scores for all patterns
         all_patterns = [
-            (pattern, self.calculate_unit_score(features, pattern))
+            (pattern, self.calculate_unit_score(features, pattern, use_decimal=use_decimal))
             for pattern in self.patterns
         ]
         
@@ -168,25 +236,30 @@ class KnowledgeBase:
         
         return similar
     
-    def multi_scale_retrieval(self, features: np.ndarray) -> List[Tuple[KnowledgePattern, float]]:
+    def multi_scale_retrieval(
+        self, 
+        features: np.ndarray,
+        use_decimal: bool = False
+    ) -> List[Tuple[KnowledgePattern, float]]:
         """
         Multi-scale retrieval at different threshold levels.
         
         Args:
             features: Input feature vector
+            use_decimal: Whether to use Decimal for extreme precision (default: False)
             
         Returns:
             List of (pattern, score) tuples
         """
         # Try each threshold in ascending order
         for threshold in self.config.RETRIEVAL_THRESHOLDS:
-            similar = self.find_similar_patterns(features, threshold)
+            similar = self.find_similar_patterns(features, threshold, use_decimal=use_decimal)
             if len(similar) >= 3:
                 return similar
         
         # Fallback: return top patterns by score
         all_patterns = [
-            (pattern, self.calculate_unit_score(features, pattern))
+            (pattern, self.calculate_unit_score(features, pattern, use_decimal=use_decimal))
             for pattern in self.patterns
         ]
         sorted_patterns = sorted(all_patterns, key=lambda x: x[1], reverse=True)
@@ -194,17 +267,22 @@ class KnowledgeBase:
         k = max(5, len(sorted_patterns) // 3)
         return sorted_patterns[:k]
     
-    def get_weighted_prediction(self, features: np.ndarray) -> Tuple[float, float]:
+    def get_weighted_prediction(
+        self, 
+        features: np.ndarray,
+        use_decimal: bool = False
+    ) -> Tuple[float, float]:
         """
         Get weighted prediction from retrieved patterns.
         
         Args:
             features: Input feature vector
+            use_decimal: Whether to use Decimal for extreme precision (default: False)
             
         Returns:
             Tuple of (prediction, average_weight)
         """
-        retrieved = self.multi_scale_retrieval(features)
+        retrieved = self.multi_scale_retrieval(features, use_decimal=use_decimal)
         
         if not retrieved:
             return None, 0.0

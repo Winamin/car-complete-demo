@@ -2,8 +2,6 @@
 """
 CAR Configuration Dataclasses
 Defines all configurable hyperparameters for the CAR architecture.
-
-Date: January 2026
 """
 
 from dataclasses import dataclass, field

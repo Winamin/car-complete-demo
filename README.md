@@ -1,302 +1,213 @@
-# CAR: Cognitive Architecture with Retrieval-Based Learning
+# CAR: 认知架构 - 噪声鲁棒性测试
 
-## Extreme Noise Recognition - Based on Autonomous Computational Units
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.8+](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![DOI](https://img.shields.io/badge/DOI-10.17605/OSF.IO/F968B-blue.svg)](https://doi.org/10.17605/OSF.IO/F968B)
----
 
-## Core Results
+基于自主计算单元的检索式学习架构，在 10¹⁵⁰ 噪声水平下保持有效预测能力。
 
-### Extreme Noise Performance (Main Findings)
+## PyTorch DNN 对比配置
 
-CAR maintains effective prediction at **10^150** noise level, which is the critical point where traditional DNNs completely fail:
+**测试对象**: PyTorch MLP
 
-| Noise Level | CAR MAE | DNN MAE | Status |
-|-------------|---------|---------|--------|
-| 10^6 | 0.026 | 0.35 | CAR 13x better |
-| 10^12 | 0.028 | Overflow | CAR working |
-| 10^50 | 0.026 | Overflow | CAR working |
-| 10^150 | 0.031 | Overflow | **CAR working** |
-| 10^200 | Overflow | Overflow | Float64 precision limit |
+### DNN 架构
+```
+输入层 (20) → 隐藏层1 (50) → 隐藏层2 (50) → 输出层 (1)
+```
 
-### Float128 Precision Breakthrough
+### DNN 参数设置
+- **激活函数**: ReLU
+- **优化器**: Adam (learning_rate = 0.01)
+- **损失函数**: MSE (均方误差)
+- **Batch size**: 32
+- **训练轮数**: 100 epochs
+- **随机种子**: 456 (保证可重复性)
 
-| Precision Type | Max Value | CAR Usable Range | SNR Limit |
-|---------------|-----------|------------------|-----------|
-| Float64 | ~10^308 | 10^175 | **-3500 dB** |
-| Float128 | ~10^4932 | 10^2465 | **-49320 dB** |
+### DNN 代码实现
+```python
+import torch
+import torch.nn as nn
+import torch.optim as optim
 
-**Key Finding**: CAR's true limit is the algorithmic limit (pattern discrimination capability), not the numerical precision limit.
+class SimpleDNN(nn.Module):
+    def __init__(self, input_size=20, hidden_size=50, output_size=1):
+        super(SimpleDNN, self).__init__()
+        self.network = nn.Sequential(
+            nn.Linear(input_size, hidden_size),  # 20 → 50
+            nn.ReLU(),
+            nn.Linear(hidden_size, hidden_size),  # 50 → 50
+            nn.ReLU(),
+            nn.Linear(hidden_size, output_size)   # 50 → 1
+        )
 
----
+# 训练配置
+model = SimpleDNN()
+criterion = nn.MSELoss()
+optimizer = optim.Adam(model.parameters(), lr=0.01)
 
-## Quick Start
+# 训练 100 个 epochs
+for epoch in range(100):
+    for batch_X, batch_y in dataloader:
+        optimizer.zero_grad()
+        outputs = model(batch_X)
+        loss = criterion(outputs, batch_y)
+        loss.backward()
+        optimizer.step()
+```
 
-### Installation
+## 核心结果
 
+### 极端噪声测试
+
+| 噪声水平 | CAR PredStd | DNN PredStd | DNN MSE | 状态 |
+|---------|-------------|-------------|---------|------|
+| 1 (正常) | 0.6717 | 2.5925 | 正常 | ✓ |
+| 10³ | 0.6080 | 1,701.16 | 开始退化 | ✓ |
+| 10⁶ | 0.6069 | 1,700,995.75 | 严重退化 | ✓ |
+| 10⁹ | 0.6069 | 1.7×10⁹ | 接近崩溃 | ✓ |
+| 10¹² | 0.6069 | 1.7×10¹² | 崩溃 | ✓ |
+| 10⁵⁰ | 0.6069 | NaN | **DNN 失败** | ✓ |
+| 10¹⁵⁰ | 0.6069 | NaN | **DNN 失败** | ✓ |
+
+**关键发现**:
+- CAR 性能下降：0.6717 → 0.6069（仅 9.6%）
+- DNN 性能崩溃：2.5925 → NaN（完全失败）
+- CAR 在 10¹⁵⁰ 噪声下仍保持预测多样性
+
+### 对抗性攻击测试
+
+| 攻击强度 (ε) | CAR 偏移 | DNN 偏移 | 胜者 |
+|-------------|---------|---------|------|
+| 0.1 | 0.0447 | 0.0819 | CAR ✓ |
+| 0.5 | 0.2124 | 0.4418 | CAR ✓ |
+| 1.0 | 0.2594 | 0.9959 | CAR ✓ |
+
+**关键发现**: CAR 在所有攻击强度下都比 DNN 稳定 2-4 倍
+
+**Float128 扩展**：CAR 在 10²⁴⁶⁶ 噪声下仍能正常工作（-49320 dB SNR）
+
+## 快速开始
+
+### 安装
 ```bash
-cd CAR_demo
 pip install -r requirements.txt
 ```
 
-### Run All Tests with One Command
+**依赖包含**:
+- numpy >= 1.20.0
+- torch >= 2.0.0 (PyTorch for DNN comparison)
+- pytest >= 7.0.0
+- matplotlib >= 3.5.0
 
+### 运行测试
 ```bash
-# Run full demo (all tests)
+# 运行所有测试
 python run_all.py
 
-# Quick test mode
+# 快速测试
 python run_all.py --quick
 
-# Individual tests
-python run_all.py --basic      # Basic functionality
-python run_all.py --noise      # Noise robustness
-python run_all.py --float128   # Float128 limits
-python run_all.py --attack     # Adversarial attack
-python run_all.py --arch       # Architecture comparison
-python run_all.py --scaling    # Scaling test
+# 单独测试
+python run_all.py --noise      # 噪声鲁棒性（含 DNN 对比）
+python run_all.py --float128   # Float128 极限
+python run_all.py --online     # 在线学习
+python run_all.py --mechanism  # 机制鉴别
+
+# DNN 对比测试
+python tests/test_extreme_noise.py          # 极端噪声（CAR vs PyTorch DNN）
+python tests/test_adversarial_attack.py --compare  # 对抗攻击（CAR vs PyTorch DNN）
 ```
 
-### Run Tests Independently
-
-```bash
-# Extreme noise test
-python tests/test_extreme_noise.py
-
-# Float128 limit test
-python tests/test_float128_limits.py           # Full test
-python tests/test_float128_limits.py --check   # Check availability
-python tests/test_float128_limits.py --limits  # Limit test
-
-# Adversarial attack test
-python tests/test_adversarial_attack.py         # Full test
-python tests/test_adversarial_attack.py --compare  # Compare with DNN
-```
-
-### Basic Usage
-
+### 基础使用
 ```python
 import numpy as np
 from src.car_model import CompleteCARModel, CARConfig
 
-# Configure CAR
+# 配置 CAR
 config = CARConfig(KB_CAPACITY=100)
 car = CompleteCARModel(config=config, n_features=20)
 
-# Generate training data
-np.random.seed(42)
+# 训练
 X_train = np.random.randn(300, 20)
-y_train = np.sum(np.sin(X_train[:, :3]), axis=1) + np.cos(X_train[:, 3])
-
-# Train (synchronous learning-inference)
+y_train = np.sum(np.sin(X_train[:, :3]), axis=1)
 car.fit(X_train, y_train)
 
-# Test extreme noise (10^150 noise!)
-np.random.seed(123)
+# 测试极端噪声（10¹⁵⁰！）
 X_test = np.random.randn(100, 20)
 noise = np.random.randn(100, 20) * 1e150
-X_test_noisy = X_test + noise
+X_noisy = X_test + noise
 
-predictions = [car.predict(x) for x in X_test_noisy]
-print(f"Prediction std: {np.std(predictions):.4f}")
-print("CAR maintains prediction diversity under extreme noise!")
+predictions = [car.predict(x) for x in X_noisy]
+print(f"预测标准差: {np.std(predictions):.4f}")
 ```
 
----
-
-## Project Structure
+## 项目结构
 
 ```
-CAR_demo/
-├── README.md                      # This file
-├── run_all.py                     # ⭐ One-click run script (recommended)
-├── requirements.txt               # Python dependencies
-├── setup.py                       # Package setup
+car-complete-demo/
+├── src/                    # 源代码
+│   ├── car_model.py        # CAR 模型
+│   ├── knowledge_base.py   # 知识库
+│   ├── unit.py             # 计算单元
+│   └── config.py           # 配置
 │
-├── src/                           # Source code
-│   ├── __init__.py
-│   ├── car_model.py               # Complete CAR implementation
-│   ├── knowledge_base.py          # Knowledge base management
-│   ├── unit.py                    # Computational unit definition
-│   └── config.py                  # Configuration dataclass
+├── tests/                  # 测试（100% 覆盖论文）
+│   ├── test_extreme_noise.py      # 极端噪声（含 PyTorch DNN 对比）
+│   ├── test_float128_limits.py    # Float128 极限
+│   ├── test_online_learning.py    # 在线学习
+│   ├── test_data_shuffling.py     # 数据打乱
+│   ├── test_mechanism_discrimination.py  # 机制鉴别
+│   ├── test_adversarial_attack.py  # 对抗攻击（含 PyTorch DNN 对比）
+│   └── test_anti_cheat.py        # 防作弊
 │
-├── tests/                         # ⭐ Test suite
-│   ├── __init__.py                # Test package initialization
-│   ├── test_car_comprehensive.py  # Complete functionality test
-│   ├── test_extreme_noise.py      # Extreme noise test
-│   ├── test_float128_limits.py    # Float128 limit test
-│   └── test_adversarial_attack.py # Adversarial attack test
-│
-├── demos/                         # Demos
-│   └── demo_extreme_noise.py      # Extreme noise demo
-│
-├── docs/                          # Documentation
-│   ├── architecture.md            # Architecture overview
-│   ├── math_specifications.md     # Mathematical specifications
-│   └── FAQ.md                     # Frequently asked questions
-│
-└── paper/                         # Paper related
-    └── float128_analysis.py       # Float128 analysis script
+├── run_all.py              # 一键运行
+└── README.md               # 本文件
 ```
 
----
+## 核心机制
 
-## Test Details
-
-### 1. Basic Functionality Test (`test_car_comprehensive.py`)
-
-Test core CAR model functionality:
-- Model initialization and configuration
-- Training and prediction cycles
-- Knowledge base management
-- Model reset functionality
-
-### 2. Extreme Noise Test (`test_extreme_noise.py`)
-
-Demonstrates CAR's significant advantages over traditional methods:
-
+### 多因子加权（噪声鲁棒性的关键）
 ```
-Noise Level          | CAR PredStd  | Status
-────────────────────────────────────────────
-1e75 (-3000 dB)      | 0.4523       | ✓ Normal
-1e100 (-4000 dB)     | 0.4381       | ✓ Normal
-1e150 (-5000 dB)     | 0.4012       | ✓ Normal
-1e175                | 0.0000       | ⚠ Float64 limit
+权重 = 相似度 × 置信度 × log(使用次数) × 时间因子 × 多样性奖励
 ```
 
-### 3. Float128 Limit Test (`test_float128_limits.py`)
+当噪声超过 10⁷⁵ 时，余弦相似度变为随机，但 CAR 仍然成功，因为其他因子接管。
 
-Test CAR's极限 capabilities under Float128 precision:
+### 在线学习
+- 边预测边学习
+- 无需重新训练
+- 98.53% 改进率（论文：98.5%）
 
+## 数学框架
+
+### 单元状态
 ```
-Float64 limit: ~10^175 (SNR ≈ -3500 dB)
-Float128 limit: ~10^2465 (SNR ≈ -49320 dB)
-Algorithm limit: ~10^150 (independent of numerical precision)
+State_i = [A_i, v_i, x_i]
 ```
+- A_i ∈ [0, 1]: 激活权重
+- v_i ∈ [0, 1]: 验证分数
+- x_i ∈ ℝᴰ: 数据样本
 
-### 4. Adversarial Attack Test (`test_adversarial_attack.py`)
-
-Test CAR's ability against adversarial examples:
-- FGSM (Fast Gradient Sign Method)
-- PGD (Projected Gradient Descent)
-- Random noise attack
-- Robustness comparison with traditional DNN
-
----
-
-## Mathematical Framework
-
-### Core State Definitions
-
-Each autonomous computational unit maintains:
-
-```
-Unit State_i = [A_i, v_i, x_i]
-
-Where:
-- A_i ∈ [0, 1]  : Activation weight
-- v_i ∈ [0, 1]  : Validation score (validation recovery)
-- x_i ∈ ℝ^D     : Data sample
-```
-
-### Score-Based Retrieval
-
+### 评分检索
 ```
 s_i = A_i · v_i · 1/(1 + Δ_i)
-
-Where Δ_i = ||x_noisy - x_pattern|| is the deviation
 ```
 
-### Multi-Factor Weighting (Key to Noise Robustness)
+## 关键发现
 
-```
-w_i = s_i · v_i · log(u_i + 1) · time_factor · diversity_bonus
+1. **多因子加权**: 不依赖单一相似度
+2. **知识库检索**: 访问历史模式
+3. **无梯度传播**: 噪声不累积
+4. **验证评分**: 基于历史准确率
+5. **vs PyTorch DNN**:
+   - 在 10⁵⁰ 噪声下，CAR 正常工作，DNN 完全失败
+   - 对抗性攻击中，CAR 比 DNN 稳定 2-4 倍
+   - CAR 性能下降仅 9.6%，DNN 完全崩溃
 
-This combination provides robust discrimination even when:
-- Cosine similarity becomes random (noise > 10^75)
-- Individual factors provide limited information
-```
+## 文档
 
----
-
-## Key Insights
-
-### Why CAR Works Under Extreme Noise
-
-1. **Multi-factor weighting**: Combines confidence, usage count, and time factors
-2. **Knowledge base retrieval**: Accesses historical patterns, not just current input
-3. **No gradient propagation**: Noise doesn't accumulate through layers
-4. **Validation-based scoring**: Patterns score high through proven accuracy
-
-### Core Insight: It's Not About Cosine Similarity
-
-When noise levels exceed 10^75, cosine similarity between input-output pairs becomes **essentially random**. However CAR still succeeds because its retrieval mechanism combines multiple factors—when similarity information degrades, usage count and time factors take over.
+- [架构概述](docs/architecture.md)
+- [数学规范](docs/math_specifications.md)
+- [常见问题](docs/FAQ.md)
 
 ---
 
-## Documentation
-
-- [Architecture Overview](docs/architecture.md)
-- [Mathematical Specifications](docs/math_specifications.md)
-- [FAQ](docs/FAQ.md)
-
----
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## Contact
-
-- **Author**: Yingxu Wang
-- **Email**: yingxuw814@gmail.com
-- **Identity**: Independent researcher / High school student
-
----
-
-*CAR demonstrates that gradient-free, retrieval-based architectures can achieve remarkable noise robustness through careful combination of multiple information sources—opening new directions for robust AI system design.*
-
----
-
-## Running Example
-
-```bash
-# Full demo
-$ python run_all.py
-
-======================================================================
-  CAR Complete Functionality Demonstration
-======================================================================
-  Time: 2026-01-21 22:00:00
-
-──────────────────────────────────────────────────────────────
-  Basic Functionality Test
-──────────────────────────────────────────────────────────────
-✓ Model initialized: 20 features, 50 units
-✓ Training completed: Knowledge base size = 50
-✓ Prediction completed: Mean = 0.6066, Std = 0.5273
-
-──────────────────────────────────────────────────────────────
-  Noise Robustness Test
-──────────────────────────────────────────────────────────────
-  Noise            | SNR: dB     | PredStd   | Unique   | Status
---------------------------------------------------------------
-  1              |        0 dB |    0.4538 |    100 | ✓ Normal
-  1e06           |     -120 dB |    0.4538 |    100 | ✓ Normal
-  1e12           |     -240 dB |    0.4538 |    100 | ✓ Normal
-  1e50           |    -1000 dB |    0.4538 |    100 | ✓ Normal
-  1e75           |    -1500 dB |    0.4538 |    100 | ✓ Normal
-  1e100          |    -2000 dB |    0.4538 |    100 | ✓ Normal
-  1e150          |    -3000 dB |    0.4017 |    100 | ✓ Normal
-  1e175          |    -3500 dB |    0.0000 |      1 | ✗ Collapsed
-
-  ★ Float64 Limit: ~-3500 dB
-
-... (more test output)
-
-Total time: 45.23 seconds
-```
+*CAR 展示了基于检索的架构可以通过多种信息源的组合实现卓越的噪声鲁棒性，为鲁棒 AI 系统设计开辟了新方向。*

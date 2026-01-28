@@ -12,7 +12,6 @@ Tests include:
 4. Knowledge Base Size Impact Test - Verify KB size affects performance
 5. Random Baseline Comparison - Compare with simple methods
 
-Date: January 2026
 """
 
 import sys

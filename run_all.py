@@ -391,7 +391,7 @@ def run_full_demo():
     success_count = sum(1 for v in all_results.values() if v != 'failed')
     total_count = len(all_results)
     
-    print(f"  完成测试: {success_count}/{total_count}")
+    print(f"  Tests completed: {success_count}/{total_count}")
     
     for test_name, result in all_results.items():
         if isinstance(result, str) and 'failed' in result:

@@ -2,11 +2,6 @@
 """
 CAR: Cognitive Architecture with Retrieval-Based Learning
 Main Source Code Package
-
-This package provides a complete implementation of the CAR architecture
-for extreme noise recognition research.
-
-Date: January 2026
 """
 
 from .config import CARConfig

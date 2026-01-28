@@ -9,7 +9,6 @@ Tests cover:
 - Numerical precision limits
 - Edge cases and error handling
 
-Date: January 2026
 """
 
 import sys

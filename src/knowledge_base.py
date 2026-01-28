@@ -2,8 +2,6 @@
 """
 Knowledge Base Module for CAR
 Implements pattern storage, retrieval, and management.
-
-Date: January 2026
 """
 
 from dataclasses import dataclass

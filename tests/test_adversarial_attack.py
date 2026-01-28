@@ -9,8 +9,6 @@ Attack types tested:
 2. PGD (Projected Gradient Descent)
 3. Random noise attack
 4. C&W attack simulation
-
-Date: January 2026
 """
 
 import sys

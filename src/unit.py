@@ -2,8 +2,6 @@
 """
 Computational Unit Module for CAR
 Implements autonomous computational units with multi-view analysis.
-
-Date: January 2026
 """
 
 import numpy as np

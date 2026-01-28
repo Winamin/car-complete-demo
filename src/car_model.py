@@ -2,16 +2,6 @@
 """
 Complete CAR Model Implementation
 Main integration module for the Cognitive Architecture with Retrieval-Based Learning.
-
-Key Characteristics:
-- No trainable parameters (0 weights)
-- No backpropagation or gradient descent
-- Simultaneous learn-infer paradigm
-- Knowledge base retrieval for predictions
-- Multi-factor weighting for robustness
-- Unit state tracking (A, v) for visualization
-
-Date: January 2026
 """
 
 import numpy as np
@@ -58,8 +48,8 @@ class CompleteCARModel:
         self.special_patterns_detected = 0
         self.consensus_count = 0
         self.prediction_history: List[float] = []
-        self.unit_A_history: List[List[float]] = []  # 记录 A 状态历史
-        self.unit_v_history: List[List[float]] = []  # 记录 v 状态历史
+        self.unit_A_history: List[List[float]] = []  # Record A state history
+        self.unit_v_history: List[List[float]] = []  # Record v state history
     
     def fit(
         self, 
@@ -207,7 +197,7 @@ class CompleteCARModel:
                 consensus_pred = 0.0
                 confidence = 0.0
         
-        # 更新单元状态 (A, v) - 基于预测结果
+        # Update unit states (A, v) - based on prediction results
         if record_states:
             self._update_unit_states(consensus_pred, confidence)
         
@@ -215,32 +205,32 @@ class CompleteCARModel:
     
     def _update_unit_states(self, prediction: float, confidence: float):
         """
-        更新所有计算单元的状态 A 和 v
+        Update all computational unit states A and v
         
-        A (Activation): 基于预测置信度调整
-        v (Validation): 基于历史表现调整
+        A (Activation): Adjusted based on prediction confidence
+        v (Validation): Adjusted based on historical performance
         """
-        # 成功标志 - 基于置信度
+        # Success flag - based on confidence
         success = confidence >= self.config.CONSENSUS_CONFIDENCE_THRESHOLD
         
-        # 更新每个单元
+        # Update each unit
         for unit in self.units:
-            # 更新验证分数 v
+            # Update validation score v
             unit.update_validation(success)
             
-            # 调整激活状态 A - 基于验证分数
+            # Adjust activation state A - based on validation score
             target_A = self.config.ACTIVATION_THRESHOLD if success else 0.5
             lr = self.config.CONSENSUS_LEARNING_RATE
             unit.activation = (1 - lr) * unit.activation + lr * target_A
             
-            # 裁剪到有效范围
+            # Clip to valid range
             unit.activation = np.clip(
                 unit.activation,
                 self.config.STATE_CLIP_MIN,
                 self.config.STATE_CLIP_MAX
             )
         
-        # 记录状态历史
+        # Record state history
         self.unit_A_history.append([u.activation for u in self.units])
         self.unit_v_history.append([u.validation for u in self.units])
     
